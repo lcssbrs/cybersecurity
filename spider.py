@@ -1,85 +1,112 @@
+import argparse
 import os
-import sys
-from os import mkdir
-from sys import argv
-from urllib.request import urlretrieve
-
-import requests
 from bs4 import BeautifulSoup
+import requests
 
-#function to complete the URL if it is incomplete
-def completeUrl(url):
-    if url.startswith('www.'):
-        url = 'http://' + url
-    elif url.startswith('http://') or url.startswith('https://'):
-        pass
+default_path = "./data/"
+default_error_depth = 0
+default_depth = 5
+default_recursive = False
+data = None
+all_links = []
+
+
+extension = {".jpg", ".jpeg", ".gif", ".bmp", ".png"}
+
+def get_parser():
+    parse_element = argparse.ArgumentParser(description="Spider")
+    parse_element.add_argument("url", help="URL to start spidering")
+    parse_element.add_argument("-r", "--recursive", action="store_true", default=default_recursive, help="Recursive spidering")
+    parse_element.add_argument("-l", "--depth", type=int, default=default_error_depth, help="Depth to spider")
+    parse_element.add_argument("-p", "--path", default=default_path, help="Path directory")
+    return parse_element
+
+def complete_url(url):
+    if url.startswith("http://") or url.startswith("https://"):
+        return url
+    elif url.startswith("www."):
+        url = "http://" + url
+        return url
     else:
-        url = 'http://www.' + url
-    return url
+        url = "http://www." + url
+        return url
 
-#function to check if the argument is a valid URL by pinging the URL
-def isUrl(url):
+def check_url(link):
+    link = complete_url(link)
     try:
-        response = requests.head(url, allow_redirects=True, timeout=5)
+        data = requests.get(link)
+        return data
+    except requests.exceptions.RequestException:
+        print("URL not found")
+        exit(1)
+
+def set_variables():
+    parser = get_parser()
+    url = parser.parse_args().url
+    path = parser.parse_args().path
+    depth = parser.parse_args().depth
+    recursive = parser.parse_args().recursive
+    return url, path, depth, recursive
+
+def download_image(url):
+    try:
+        image = requests.get(url)
+        with open(os.path.basename(url), "wb") as file:
+            file.write(image.content)
+    except requests.exceptions.RequestException:
+        print("Image not found")
+        exit(1)
+
+def fetch_data(soup):
+    images = soup.find_all("img")
+    for image in images:
+        src = image.get("src")
+        if src is not None:
+            if src.endswith(tuple(extension)):
+                print("Image found: ", src)
+                download_image(src)
+
+def check_link(link):
+    if link in all_links:
         return True
-    except requests.RequestException:
-        return False
+    all_links.append(link)
+    return False
 
-#function to parse arguments
-def parse_args(argv):
-    if len(argv) == 1:
-        print('Usage: python spider.py <url>')
-        exit(1)
-    if len(argv) > 2:
-        print('Too many arguments')
-        exit(1)
-    if not isUrl(argv[1]):
-        print('Invalid URL')
-        exit(1)
-    return argv[1]
+def ft_recursive(soup, depth):
+    fetch_data(soup)
+    if depth == 0:
+        return
+    links = soup.find_all("a")
+    i = 0
+    while i < len(links) and depth > 0:
+        link = links[i].get("href")
+        if link is not None:
+            if check_link(link):
+                break
+            if link.startswith("http"):
+                print("depth: ", depth, "link: ", link)
+                data = check_url(link)
+                soup = BeautifulSoup(data.text, "html.parser")
+                ft_recursive(soup, depth - 1)
+        i += 1
 
-#function to get the html content of a page
-def getHtml(url):
-    response = requests.get(url)
-    return response.text
-
-#function to get the image links from the html content recursively
-def parseImages(html):
-    soup = BeautifulSoup(html, 'html.parser')
-    images = soup.find_all('img')
-    folder = 'images_' + sys.argv[1].split('//')[1]
+if __name__ == "__main__":
+    url, path, depth, recursive = set_variables()
+    if not recursive and depth != default_error_depth:
+        print("The depth option is only available with the recursive option")
+        exit(1)
+    if depth < default_error_depth:
+        print("The depth option must be a positive integer")
+        exit(1)
+    depth = default_depth if depth == default_error_depth else depth
+    data = check_url(url)
+    soup = BeautifulSoup(data.text, "html.parser")
     try:
-        os.mkdir(folder)
+        os.makedirs(path)
     except FileExistsError:
         pass
-    try:
-        os.chdir(folder)
-    except FileNotFoundError:
-        pass
-    for image in images:
-        image = image.get('src')
-        if image.endswith('.jpg') or image.endswith('.png') or image.endswith('.jpeg') or image.endswith('.gif') or image.endswith('.bmp'):
-            downloadImages(image)
-
-
-#function to download the images
-def downloadImages(image):
-    try:
-        urlretrieve(image, os.path.basename(image))
-    except Exception as e:
-        print(e)
-
-#function to save the images to a folder
-
-#function to run the spider
-if __name__ == '__main__':
-    if len(argv) == 1:
-        argv.append('https://www.google.com')
-    argv[1] = completeUrl(argv[1])
-    if isUrl(argv[1]):
-        print("URL is valid")
+    os.chdir(path)
+    if recursive:
+        ft_recursive(soup, depth)
     else:
-        print("URL is invalid")
-        exit(1)
-    html = getHtml(argv[1])
-    parseImages(html)
+        fetch_data(soup)
