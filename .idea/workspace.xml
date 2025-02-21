@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9ea7091a-59f7-40e3-bc15-c9365ea8de0d" name="Changes" comment="First project of cybersecurity for 42">
+    <list default="true" id="9ea7091a-59f7-40e3-bc15-c9365ea8de0d" name="Changes" comment="Add spider functionality and update requirements">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scorpion.py" beforeDir="false" afterPath="$PROJECT_DIR$/scorpion.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spider.py" beforeDir="false" afterPath="$PROJECT_DIR$/spider.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -29,6 +31,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.ollama.executor": "Run",
     "Python.spider.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -58,7 +61,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1739879127346</updated>
-      <workItem from="1739879128358" duration="13572000" />
+      <workItem from="1739879128358" duration="20876000" />
     </task>
     <task id="LOCAL-00001" summary="First project of cybersecurity for 42">
       <option name="closed" value="true" />
@@ -68,7 +71,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739888456063</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Add spider functionality and update requirements">
+      <option name="closed" value="true" />
+      <created>1739962153521</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1739962153521</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -76,9 +87,11 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="First project of cybersecurity for 42" />
-    <option name="LAST_COMMIT_MESSAGE" value="First project of cybersecurity for 42" />
+    <MESSAGE value="Add spider functionality and update requirements" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add spider functionality and update requirements" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Cybersecurity$spider.coverage" NAME="spider Coverage Results" MODIFIED="1739960431465" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Cybersecurity$ollama.coverage" NAME="ollama Coverage Results" MODIFIED="1740043653700" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

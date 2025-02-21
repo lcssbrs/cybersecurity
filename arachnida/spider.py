@@ -1,5 +1,8 @@
 import argparse
 import os
+import yarl
+import uuid
+
 from bs4 import BeautifulSoup
 import requests
 
@@ -8,7 +11,7 @@ default_error_depth = 0
 default_depth = 5
 default_recursive = False
 data = None
-all_links = []
+all_links = set()
 
 
 extension = {".jpg", ".jpeg", ".gif", ".bmp", ".png"}
@@ -22,14 +25,12 @@ def get_parser():
     return parse_element
 
 def complete_url(url):
-    if url.startswith("http://") or url.startswith("https://"):
+    if url.endswith("/") is False:
+        url += "/"
+    if url.startswith("http") or url.startswith("https"):
         return url
-    elif url.startswith("www."):
-        url = "http://" + url
-        return url
-    else:
-        url = "http://www." + url
-        return url
+    return "http://" + url
+
 
 def check_url(link):
     link = complete_url(link)
@@ -38,8 +39,7 @@ def check_url(link):
         return data
     except requests.exceptions.RequestException:
         print("URL not found")
-        exit(1)
-
+        return None
 def set_variables():
     parser = get_parser()
     url = parser.parse_args().url
@@ -50,12 +50,13 @@ def set_variables():
 
 def download_image(url):
     try:
-        image = requests.get(url)
-        with open(os.path.basename(url), "wb") as file:
-            file.write(image.content)
+        data = requests.get(url)
+        link = url.split("/")[-1]
+        with open(link + str(uuid.uuid4()) + ".jpg", "wb") as file:
+            file.write(data.content)
     except requests.exceptions.RequestException:
         print("Image not found")
-        exit(1)
+
 
 def fetch_data(soup):
     images = soup.find_all("img")
@@ -63,35 +64,44 @@ def fetch_data(soup):
         src = image.get("src")
         if src is not None:
             if src.endswith(tuple(extension)):
-                print("Image found: ", src)
                 download_image(src)
 
+
+def normalize_url(link):
+    url = yarl.URL(link)
+    scheme = "https"
+    if url.host:
+        host = url.host.lstrip("www.")
+        path = url.path.rstrip("/")
+        return f"{scheme}://{host}{path}"
+    return
+
 def check_link(link):
-    if link in all_links:
+    normalized_link = normalize_url(link)
+    if normalized_link in all_links:
         return True
-    all_links.append(link)
+    all_links.add(normalized_link)
     return False
 
 def ft_recursive(soup, depth):
-    fetch_data(soup)
     if depth == 0:
-        return
+        exit(0)
+    print("depth: ", depth)
     links = soup.find_all("a")
-    i = 0
-    while i < len(links) and depth > 0:
-        link = links[i].get("href")
-        if link is not None:
-            if check_link(link):
-                break
-            if link.startswith("http"):
-                print("depth: ", depth, "link: ", link)
-                data = check_url(link)
-                soup = BeautifulSoup(data.text, "html.parser")
-                ft_recursive(soup, depth - 1)
-        i += 1
+    for link in links:
+        href = link.get("href")
+        if href is not None:
+            if not check_link(href):
+                data = check_url(href)
+                if data:
+                    soup = BeautifulSoup(data.text, "html.parser")
+                    fetch_data(soup)
+                    ft_recursive(soup, depth - 1)
 
 if __name__ == "__main__":
     url, path, depth, recursive = set_variables()
+    all_links.add(normalize_url(complete_url(url)))
+    print("all_links: ", all_links)
     if not recursive and depth != default_error_depth:
         print("The depth option is only available with the recursive option")
         exit(1)
